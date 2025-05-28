@@ -4,25 +4,38 @@
 PMAGENTA="\033[1;35m"
 NC="\033[0m"
 
-# Проверка: первый запуск через bash <(...)?
-if [[ "$0" =~ ^/dev/fd/ ]] || [[ ! -f /usr/local/bin/web4static ]]; then
-  echo -e "${PMAGENTA}[WELCOME] Добро пожаловать в Web4Static установщик!${NC}"
-  echo -e "${PMAGENTA}[INFO] Вы запускаете скрипт впервые. Установить веб-панель? [Y/n]${NC}"
-  read -r answer
-  answer=${answer,,} # в нижний регистр
-
-  if [[ "$answer" =~ ^(n|no)$ ]]; then
-    echo -e "${PMAGENTA}[CANCEL] Установка отменена.${NC}"
-    exit 0
+# Проверяем, где запущен скрипт и установлен ли он
+if [[ "$0" =~ ^/dev/fd/ ]]; then
+  # Запуск через bash <(...)
+  if [[ -f /usr/local/bin/web4static ]]; then
+    # Скрипт установлен, предлагаем меню команд
+    echo -e "${PMAGENTA}[INFO] Скрипт уже установлен.${NC}"
+    echo -e "${PMAGENTA}Доступные команды:${NC}"
+    echo -e "${PMAGENTA}  install - установить/переустановить${NC}"
+    echo -e "${PMAGENTA}  remove  - удалить${NC}"
+    echo -e "${PMAGENTA}  restart - перезапустить сервис${NC}"
+    echo -e "${PMAGENTA}  stop    - остановить сервис${NC}"
+    echo -ne "${PMAGENTA}Введите команду: ${NC}"
+    read -r cmd
+    exec /usr/local/bin/web4static "$cmd"
+    exit
+  else
+    # Скрипт не установлен, предлагаем установить
+    echo -e "${PMAGENTA}[WELCOME] Добро пожаловать в Web4Static установщик!${NC}"
+    echo -ne "${PMAGENTA}Установить веб-панель? [Y/n]: ${NC}"
+    read -r answer
+    answer=${answer,,} # в нижний регистр
+    if [[ "$answer" =~ ^(n|no)$ ]]; then
+      echo -e "${PMAGENTA}[CANCEL] Установка отменена.${NC}"
+      exit 0
+    fi
+    echo -e "${PMAGENTA}[INFO] Устанавливаем скрипт как web4static...${NC}"
+    curl -sL https://raw.githubusercontent.com/Mendex777/web4static/refs/heads/for_sing-box/install.sh -o /usr/local/bin/web4static
+    chmod +x /usr/local/bin/web4static
+    echo -e "${PMAGENTA}[INFO] Запускаем установку веб-панели...${NC}"
+    exec /usr/local/bin/web4static install
+    exit
   fi
-
-  echo -e "${PMAGENTA}[INFO] Устанавливаем скрипт как web4static...${NC}"
-  curl -sL https://raw.githubusercontent.com/Mendex777/web4static/refs/heads/for_sing-box/install.sh -o /usr/local/bin/web4static
-  chmod +x /usr/local/bin/web4static
-
-  echo -e "${PMAGENTA}[INFO] Запускаем установку веб-панели...${NC}"
-  exec /usr/local/bin/web4static install
-  exit
 fi
 
 # Настройки
