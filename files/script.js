@@ -114,7 +114,7 @@ document.getElementById('mainForm').addEventListener('submit', function (event) 
             button.value = 'Error';
         }).finally(() => {
             setTimeout(() => {
-                button.value = 'Save & Restart';
+                button.value = 'Save';
                 button.classList.remove('loading');
                 button.disabled = false;
             }, 1500);
