@@ -4,12 +4,24 @@
 PMAGENTA="\033[1;35m"
 NC="\033[0m"
 
-# Автоматическая установка себя как /usr/local/bin/web4static
-if [[ "$0" =~ ^/dev/fd/ ]]; then
+# Проверка: первый запуск через bash <(...)?
+if [[ "$0" =~ ^/dev/fd/ ]] || [[ ! -f /usr/local/bin/web4static ]]; then
+  echo -e "${PMAGENTA}[WELCOME] Добро пожаловать в Web4Static установщик!${NC}"
+  echo -e "${PMAGENTA}[INFO] Вы запускаете скрипт впервые. Установить веб-панель? [Y/n]${NC}"
+  read -r answer
+  answer=${answer,,} # в нижний регистр
+
+  if [[ "$answer" =~ ^(n|no)$ ]]; then
+    echo -e "${PMAGENTA}[CANCEL] Установка отменена.${NC}"
+    exit 0
+  fi
+
   echo -e "${PMAGENTA}[INFO] Устанавливаем скрипт как web4static...${NC}"
   curl -sL https://raw.githubusercontent.com/Mendex777/web4static/refs/heads/for_sing-box/install.sh -o /usr/local/bin/web4static
   chmod +x /usr/local/bin/web4static
-  exec /usr/local/bin/web4static "$@"
+
+  echo -e "${PMAGENTA}[INFO] Запускаем установку веб-панели...${NC}"
+  exec /usr/local/bin/web4static install
   exit
 fi
 
