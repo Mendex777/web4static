@@ -43,7 +43,7 @@ $categories = [
     'NFQWS' => getLists('/opt/etc/nfqws'),
     'TPWS' => getLists('/opt/etc/tpws'),
     'XKEEN' => getLists('/opt/etc/xray/configs'),
-    'sing-box' => getLists('/etc/sing-box/'),
+    'sing-box' => getLists('/etc/sing-box'),
     'object-group' => getObjectGroupLists(),
     'HydraRoute' => getLists(['/opt/etc/HydraRoute', '/opt/etc/AdGuardHome']),
 ];
