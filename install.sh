@@ -4,6 +4,15 @@
 PMAGENTA="\033[1;35m"
 NC="\033[0m"
 
+# Автоматическая установка себя как /usr/local/bin/web4static
+if [[ "$0" =~ ^/dev/fd/ ]]; then
+  echo -e "${PMAGENTA}[INFO] Устанавливаем скрипт как web4static...${NC}"
+  curl -sL https://raw.githubusercontent.com/Mendex777/web4static/refs/heads/for_sing-box/install.sh -o /usr/local/bin/web4static
+  chmod +x /usr/local/bin/web4static
+  exec /usr/local/bin/web4static "$@"
+  exit
+fi
+
 # Настройки
 WEB4STATIC_DIR="/opt/web4static"
 PORT=9096
