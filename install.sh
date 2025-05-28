@@ -4,36 +4,41 @@
 PMAGENTA="\033[1;35m"
 NC="\033[0m"
 
-# Проверяем, где запущен скрипт и установлен ли он
+WEB4STATIC_BIN="/usr/local/bin/web4static"
+
+# Функция вывода списка команд
+print_help() {
+  echo -e "${PMAGENTA}Доступные команды:${NC}"
+  echo -e "${PMAGENTA}  install - установить/переустановить${NC}"
+  echo -e "${PMAGENTA}  remove  - удалить${NC}"
+  echo -e "${PMAGENTA}  restart - перезапустить сервис${NC}"
+  echo -e "${PMAGENTA}  stop    - остановить сервис${NC}"
+  echo -e "${PMAGENTA}Пример: web4static install${NC}"
+}
+
+# Проверяем, если запуск через bash <(...) — и есть установленный скрипт
 if [[ "$0" =~ ^/dev/fd/ ]]; then
-  # Запуск через bash <(...)
-  if [[ -f /usr/local/bin/web4static ]]; then
-    # Скрипт установлен, предлагаем меню команд
+  if [[ -f $WEB4STATIC_BIN ]]; then
     echo -e "${PMAGENTA}[INFO] Скрипт уже установлен.${NC}"
-    echo -e "${PMAGENTA}Доступные команды:${NC}"
-    echo -e "${PMAGENTA}  install - установить/переустановить${NC}"
-    echo -e "${PMAGENTA}  remove  - удалить${NC}"
-    echo -e "${PMAGENTA}  restart - перезапустить сервис${NC}"
-    echo -e "${PMAGENTA}  stop    - остановить сервис${NC}"
+    print_help
     echo -ne "${PMAGENTA}Введите команду: ${NC}"
     read -r cmd
-    exec /usr/local/bin/web4static "$cmd"
+    exec $WEB4STATIC_BIN "$cmd"
     exit
   else
-    # Скрипт не установлен, предлагаем установить
     echo -e "${PMAGENTA}[WELCOME] Добро пожаловать в Web4Static установщик!${NC}"
     echo -ne "${PMAGENTA}Установить веб-панель? [Y/n]: ${NC}"
     read -r answer
-    answer=${answer,,} # в нижний регистр
+    answer=${answer,,} # к нижнему регистру
     if [[ "$answer" =~ ^(n|no)$ ]]; then
       echo -e "${PMAGENTA}[CANCEL] Установка отменена.${NC}"
       exit 0
     fi
     echo -e "${PMAGENTA}[INFO] Устанавливаем скрипт как web4static...${NC}"
-    curl -sL https://raw.githubusercontent.com/Mendex777/web4static/refs/heads/for_sing-box/install.sh -o /usr/local/bin/web4static
-    chmod +x /usr/local/bin/web4static
+    curl -sL https://raw.githubusercontent.com/Mendex777/web4static/refs/heads/for_sing-box/install.sh -o $WEB4STATIC_BIN
+    chmod +x $WEB4STATIC_BIN
     echo -e "${PMAGENTA}[INFO] Запускаем установку веб-панели...${NC}"
-    exec /usr/local/bin/web4static install
+    exec $WEB4STATIC_BIN install
     exit
   fi
 fi
@@ -43,7 +48,6 @@ WEB4STATIC_DIR="/opt/web4static"
 PORT=9096
 SERVICE_NAME="web4static.service"
 
-# Основные файлы
 FILES=(
   "https://raw.githubusercontent.com/Mendex777/web4static/refs/heads/for_sing-box/files/ascii.txt"
   "https://raw.githubusercontent.com/Mendex777/web4static/refs/heads/for_sing-box/files/functions.php"
@@ -55,20 +59,17 @@ FILES=(
   "https://raw.githubusercontent.com/Mendex777/web4static/refs/heads/for_sing-box/web4static.php"
 )
 
-# Иконки
 ICONS=(
   "https://raw.githubusercontent.com/Mendex777/web4static/for_sing-box/icons/favicon.png"
   "https://raw.githubusercontent.com/Mendex777/web4static/for_sing-box/icons/apple-touch-icon.png"
 )
 
-# Установка зависимостей
 install_requirements() {
   echo -e "${PMAGENTA}[INFO] Устанавливаем необходимые пакеты: curl, php-cgi${NC}"
   sudo apt update
   sudo apt install -y curl php-cgi
 }
 
-# Загрузка файлов
 download_files() {
   echo -e "${PMAGENTA}[INFO] Скачиваем файлы в ${WEB4STATIC_DIR}${NC}"
   mkdir -p "${WEB4STATIC_DIR}/files" "${WEB4STATIC_DIR}/icons"
@@ -93,7 +94,6 @@ download_files() {
   done
 }
 
-# Создание systemd-сервиса для автозапуска
 create_service() {
   echo -e "${PMAGENTA}[INFO] Создаём systemd-сервис ${SERVICE_NAME}${NC}"
   sudo tee /etc/systemd/system/${SERVICE_NAME} > /dev/null <<EOF
@@ -115,19 +115,16 @@ EOF
   sudo systemctl enable ${SERVICE_NAME}
 }
 
-# Запуск через systemd
 start_service() {
   echo -e "${PMAGENTA}[INFO] Запуск сервиса ${SERVICE_NAME}${NC}"
   sudo systemctl start ${SERVICE_NAME}
 }
 
-# Остановка сервиса
 stop_service() {
   echo -e "${PMAGENTA}[INFO] Остановка сервиса ${SERVICE_NAME}${NC}"
   sudo systemctl stop ${SERVICE_NAME}
 }
 
-# Удаление установки и сервиса
 remove_web4static() {
   echo -e "${PMAGENTA}[INFO] Останавливаем и удаляем сервис${NC}"
   sudo systemctl disable ${SERVICE_NAME} --now
@@ -136,29 +133,28 @@ remove_web4static() {
 
   echo -e "${PMAGENTA}[INFO] Удаляем файлы установки${NC}"
   sudo rm -rf "${WEB4STATIC_DIR}"
-  sudo rm -f /usr/local/bin/web4static
+  sudo rm -f $WEB4STATIC_BIN
 }
 
-# Вычисление первого локального IP
 get_local_ip() {
   ip addr show scope global | awk '/inet / && $2 !~ /127\./ { sub("/.*","",$2); print $2; exit }'
 }
 
-# Установка
 install_web4static() {
   install_requirements
   download_files
   chmod +x "$0"
-  ln -sf "$0" /usr/local/bin/web4static
+  ln -sf "$0" $WEB4STATIC_BIN
 
   create_service
   start_service
 
   local ip=$(get_local_ip)
   echo -e "${PMAGENTA}[SUCCESS] Установка завершена. Открой в браузере: http://${ip}:${PORT}/${NC}"
+  echo
+  print_help
 }
 
-# Установка, удаление, рестарт
 case "$1" in
   install)
     install_web4static
