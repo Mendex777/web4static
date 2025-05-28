@@ -14,6 +14,7 @@ print_help() {
   echo -e "${PMAGENTA}  restart - перезапустить сервис${NC}"
   echo -e "${PMAGENTA}  stop    - остановить сервис${NC}"
   echo -e "${PMAGENTA}Пример: web4static install${NC}"
+  echo -e "${PMAGENTA}Посмотреть логи  sudo journalctl -u web4static.service -f${NC}"
 }
 
 # Проверяем, если запуск через bash <(...) — и есть установленный скрипт
